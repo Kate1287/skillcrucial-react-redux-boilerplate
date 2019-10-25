@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import PropTypes from 'prop-types'
 import { Provider, connect } from 'react-redux';
@@ -18,14 +17,14 @@ import Startup from './startup';
 
 
 const OnlyAnonymousRoute = ({ component: Component, ...rest }) => {
-  const func = (props) => (!!rest.user && !!rest.user.name && !!rest.token
+  const func = props => (!!rest.user && !!rest.user.name && !!rest.token
     ? <Redirect to={{ pathname: '/' }} />
     : <Component {...props} />)
   return (<Route {...rest} render={func} />)
 }
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
-  const func = (props) => (!!rest.user && !!rest.user.name && !!rest.token
+  const func = props => (!!rest.user && !!rest.user.name && !!rest.token
     ? <Component {...props} />
     : (
       <Redirect to={
@@ -66,16 +65,16 @@ PrivateRoute.propTypes = types
 PrivateRoute.defaultProps = defaults
 OnlyAnonymousRoute.defaultProps = defaults
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   user: state.authentication.user,
   token: state.authentication.token
 })
 
-const mapDispatchToProps = (dispatch) => bindActionCreators({}, dispatch)
+const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch)
 
 const PrivateRouteConnected = connect(mapStateToProps, mapDispatchToProps)(PrivateRoute)
 
-const mapDispatchToPropsStartup = (dispatch) => bindActionCreators({}, dispatch)
+const mapDispatchToPropsStartup = dispatch => bindActionCreators({}, dispatch)
 
 const StartupConnected = withRouter(connect(() => ({}), mapDispatchToPropsStartup)(Startup));
 export default (props) => {
@@ -86,7 +85,6 @@ export default (props) => {
           <Switch>
             <Route exact path="/" component={() => <DummyView />} />
             <Route exact path="/dashboard" component={() => <Home />} />
-            <Route exact path="/salo/*" component={() => <Home />} />
             <PrivateRouteConnected exact path="/hidden-route" component={() => <DummyView />} />
             <Route component={() => <NotFound />} />
           </Switch>
