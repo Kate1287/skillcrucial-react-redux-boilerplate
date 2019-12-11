@@ -1,20 +1,11 @@
-const path = require('path');
+const { resolve } = require('path');
 require('dotenv').config();
-
 const webpack = require('webpack');
-const path = require('path')
-const glob = require('glob');
 
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const PurgecssPlugin = require('purgecss-webpack-plugin')
-
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WebpackShellPlugin = require('webpack-shell-plugin');
 require('babel-polyfill')
-
-const PATHS = {
-  src: path.join(__dirname, 'client')
-}
 
 const config = {
   devtool: 'cheap-module-eval-source-map',
@@ -34,14 +25,14 @@ const config = {
   },
   output: {
     filename: 'js/bundle.js',
-    path: path.resolve(__dirname, 'dist/assets'),
+    path: resolve(__dirname, 'dist/assets'),
     publicPath: '',
   },
   mode: 'development',
-  context: path.resolve(__dirname, 'client'),
+  context: resolve(__dirname, 'client'),
   devServer: {
     hot: true,
-    contentBase: path.resolve(__dirname, 'dist/assets'),
+    contentBase: resolve(__dirname, 'dist/assets'),
     watchContentBase: true,
     host: 'localhost',
     port: 3001,
@@ -61,18 +52,7 @@ const config = {
       },
     ],
   },
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        styles: {
-          name: 'styles',
-          test: /\.css$/,
-          chunks: 'all',
-          enforce: true
-        }
-      }
-    }
-  },
+
   module: {
     rules: [
       {
@@ -90,30 +70,10 @@ const config = {
       },
       {
         test: /\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-            options: {
-              publicPath: '../',
-              hmr: process.env.NODE_ENV === 'development',
-            },
-          },
-          { 
-            loader: 'css-loader', options: { sourceMap: false } 
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              ident: 'postcss',
-              plugins: (loader) => [
-                require('postcss-import')({ root: loader.resourcePath }),
-                require('postcss-preset-env')(),
-                require('autoprefixer')(),
-                require('cssnano')()
-              ]
-            }
-          }
-        ],
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: ['css-loader']
+        }),
       },
       {
         test: /\.txt$/i,
@@ -122,36 +82,19 @@ const config = {
       {
         test: /\.scss$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-            options: {
-              publicPath: '../',
-              hmr: process.env.NODE_ENV === 'development',
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: [
+            'css-loader',
+            {
+              loader: 'sass-loader',
+              query: {
+                sourceMap: false,
+              },
             },
-          },
-          {
-            loader: 'css-loader', options: { sourceMap: false }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              ident: 'postcss',
-              plugins: (loader) => [
-                require('postcss-import')({ root: loader.resourcePath }),
-                require('postcss-preset-env')(),
-                require('autoprefixer')(),
-                require('cssnano')()
-              ]
-            }
-          },
-          {
-            loader: 'sass-loader',
-            query: {
-              sourceMap: false,
-            }
-          }
-        ],
+          ],
+          publicPath: '../'
+        }),
       },
       {
         test: /\.(png|jpg|gif)$/,
@@ -235,18 +178,13 @@ const config = {
       test: /\.js$/,
       options: {
         eslint: {
-          configFile: path.resolve(__dirname, '.eslintrc'),
+          configFile: resolve(__dirname, '.eslintrc'),
           cache: false,
         }
       },
     }),
     new webpack.optimize.ModuleConcatenationPlugin(),
-    new MiniCssExtractPlugin({
-      filename: 'css/[name].css',
-    }),
-    new PurgecssPlugin({
-      paths: glob.sync(`${PATHS.src}/**/*`,  { nodir: true }),
-    }),
+    new ExtractTextPlugin({ filename: 'css/main.css', disable: false, allChunks: true }),
     new CopyWebpackPlugin([{ from: 'assets/images', to: 'images' }]),
     new CopyWebpackPlugin([{ from: 'assets/fonts', to: 'fonts' }]),
     new CopyWebpackPlugin([{ from: 'index.html', to: 'index.html' }]),
